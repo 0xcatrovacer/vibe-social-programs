@@ -32,4 +32,35 @@ describe("solana-social", () => {
         assert.equal(createdVibe.likes, 0);
         assert.ok(createdVibe.timestamp);
     });
+
+    it("can create vibe from different user", async () => {
+        const newUser = anchor.web3.Keypair.generate();
+        const vibe = anchor.web3.Keypair.generate();
+
+        const signature = await program.provider.connection.requestAirdrop(
+            newUser.publicKey,
+            1000000000
+        );
+        await program.provider.connection.confirmTransaction(signature);
+
+        await program.rpc.createVibe("New User!", "Vibe From New User", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: newUser.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [newUser, vibe],
+        });
+
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(createdVibe.topic, "New User!");
+        assert.equal(createdVibe.content, "Vibe From New User");
+        assert.equal(
+            createdVibe.author.toBase58(),
+            newUser.publicKey.toBase58()
+        );
+        assert.equal(createdVibe.likes, 0);
+        assert.ok(createdVibe.timestamp);
+    });
 });
