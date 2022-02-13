@@ -5,9 +5,9 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 #[program]
 pub mod solana_social {
     use super::*;
-    pub fn create_tweet(ctx: Context<CreateTweet>, topic: String, content: String) -> ProgramResult {
+    pub fn create_vibe(ctx: Context<Createvibe>, topic: String, content: String) -> ProgramResult {
 
-        let tweet = &mut ctx.accounts.tweet;
+        let vibe = &mut ctx.accounts.vibe;
         let author = &mut ctx.accounts.author;
         let clock = Clock::get().unwrap();
 
@@ -19,26 +19,26 @@ pub mod solana_social {
             return Err(ErrorCode::ContentTooLong.into())
         }
 
-        tweet.author = *author.key;
-        tweet.timestamp = clock.unix_timestamp;
-        tweet.topic = topic;
-        tweet.content = content;
+        vibe.author = *author.key;
+        vibe.timestamp = clock.unix_timestamp;
+        vibe.topic = topic;
+        vibe.content = content;
 
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct CreateTweet<'info> {
-    #[account(init, payer = author, space = Tweet::LEN)]
-    pub tweet: Account<'info, Tweet>,
+pub struct Createvibe<'info> {
+    #[account(init, payer = author, space = Vibe::LEN)]
+    pub vibe: Account<'info, Vibe>,
     #[account(mut)]
     pub author: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[account]
-pub struct Tweet {
+pub struct Vibe {
     pub author: Pubkey,
     pub timestamp: i64,
     pub topic: String,
@@ -55,7 +55,7 @@ pub enum ErrorCode {
 
 
 
-//Size of a Tweet
+//Size of a Vibe
 const DISCRIMINATOR_LENGTH: usize = 8;
 const PUBLIC_KEY_LENGTH: usize = 32;
 const TIMESTAMP_LENGTH: usize = 8;
@@ -63,7 +63,7 @@ const STRING_LENGTH_PREFIX: usize = 4;
 const MAX_TOPIC_LENGTH: usize = 50 * 4;
 const MAX_CONTENT_LENGTH: usize = 300 * 4;
 
-impl Tweet {
+impl Vibe {
     const LEN: usize = DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH // Author.
         + TIMESTAMP_LENGTH // Timestamp.
