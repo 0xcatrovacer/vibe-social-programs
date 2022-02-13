@@ -5,7 +5,8 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 #[program]
 pub mod solana_social {
     use super::*;
-    pub fn create_vibe(ctx: Context<Createvibe>, topic: String, content: String) -> ProgramResult {
+
+    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
 
         let vibe = &mut ctx.accounts.vibe;
         let author = &mut ctx.accounts.author;
@@ -26,15 +27,27 @@ pub mod solana_social {
 
         Ok(())
     }
+
+    pub fn delete_vibe(_ctx: Context<DeleteVibe>) -> ProgramResult {
+        Ok(())
+    }
+
 }
 
 #[derive(Accounts)]
-pub struct Createvibe<'info> {
+pub struct CreateVibe<'info> {
     #[account(init, payer = author, space = Vibe::LEN)]
     pub vibe: Account<'info, Vibe>,
     #[account(mut)]
     pub author: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteVibe<'info> {
+    #[account(mut, has_one = author, close = author)]
+    pub vibe: Account<'info, Vibe>,
+    pub author: Signer<'info>,
 }
 
 #[account]
