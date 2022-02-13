@@ -110,4 +110,9 @@ describe("solana-social", () => {
             );
         }
     });
+
+    it("can fetch all vibes", async () => {
+        const vibes = await program.account.vibe.all();
+        assert.equal(vibes.length, 2);
+    });
 });
