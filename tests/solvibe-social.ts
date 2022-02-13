@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import { SolanaSocial } from "../target/types/solana_social";
+import { SolvibeSocial } from "../target/types/solvibe_social";
 import * as assert from "assert";
 import * as bs58 from "bs58";
 
-describe("solana-social", () => {
+describe("solvibe-social", () => {
     anchor.setProvider(anchor.Provider.env());
 
-    const program = anchor.workspace.SolanaSocial as Program<SolanaSocial>;
+    const program = anchor.workspace.SolvibeSocial as Program<SolvibeSocial>;
 
     it("can create a new vibe", async () => {
         const vibe = anchor.web3.Keypair.generate();
