@@ -89,4 +89,25 @@ describe("solana-social", () => {
             );
         }
     });
+
+    it("cannot provide content with more than 300 characters", async () => {
+        try {
+            const vibe = anchor.web3.Keypair.generate();
+
+            await program.rpc.createVibe("Motto", "a".repeat(301), {
+                accounts: {
+                    vibe: vibe.publicKey,
+                    author: program.provider.wallet.publicKey,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                },
+                signers: [vibe],
+            });
+            assert.fail("Should have failed with a 300-character content.");
+        } catch (e) {
+            assert.equal(
+                e.msg,
+                "The provided content should be 300 characters long maximum."
+            );
+        }
+    });
 });
