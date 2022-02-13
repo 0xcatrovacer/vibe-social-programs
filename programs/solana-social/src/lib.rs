@@ -24,7 +24,16 @@ pub mod solana_social {
         vibe.timestamp = clock.unix_timestamp;
         vibe.topic = topic;
         vibe.content = content;
+        vibe.likes = 0;
 
+        Ok(())
+    }
+
+    pub fn update_likes(ctx: Context<UpdateLikes>) -> ProgramResult {
+        let vibe = &mut ctx.accounts.vibe;
+        
+        vibe.likes += 1;
+        
         Ok(())
     }
 
@@ -44,6 +53,14 @@ pub struct CreateVibe<'info> {
 }
 
 #[derive(Accounts)]
+pub struct UpdateLikes<'info> {
+    #[account(mut)]
+    pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
+    pub liker: Signer<'info>,
+}
+
+#[derive(Accounts)]
 pub struct DeleteVibe<'info> {
     #[account(mut, has_one = author, close = author)]
     pub vibe: Account<'info, Vibe>,
@@ -55,7 +72,8 @@ pub struct Vibe {
     pub author: Pubkey,
     pub timestamp: i64,
     pub topic: String,
-    pub content: String
+    pub content: String,
+    pub likes: u32,
 }
 
 #[error]
@@ -75,11 +93,13 @@ const TIMESTAMP_LENGTH: usize = 8;
 const STRING_LENGTH_PREFIX: usize = 4;
 const MAX_TOPIC_LENGTH: usize = 50 * 4;
 const MAX_CONTENT_LENGTH: usize = 300 * 4;
+const MAX_LIKES_LENGTH: usize = 4;
 
 impl Vibe {
     const LEN: usize = DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH // Author.
         + TIMESTAMP_LENGTH // Timestamp.
         + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
-        + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH; // Content.
+        + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
+        + MAX_LIKES_LENGTH; // Likes.
 }
