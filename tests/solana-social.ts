@@ -63,4 +63,30 @@ describe("solana-social", () => {
         assert.equal(createdVibe.likes, 0);
         assert.ok(createdVibe.timestamp);
     });
+
+    it("cannot provide topic with more than 50 characters", async () => {
+        try {
+            const vibe = anchor.web3.Keypair.generate();
+
+            await program.rpc.createVibe(
+                "a".repeat(51),
+                "Overshoot Topic Limit",
+                {
+                    accounts: {
+                        vibe: vibe.publicKey,
+                        author: program.provider.wallet.publicKey,
+                        systemProgram: anchor.web3.SystemProgram.programId,
+                    },
+                    signers: [vibe],
+                }
+            );
+
+            assert.fail("Should have failed with 51-character topic");
+        } catch (e) {
+            assert.equal(
+                e.msg,
+                "The provided topic should be 50 characters long maximum."
+            );
+        }
+    });
 });
