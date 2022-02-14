@@ -57,7 +57,7 @@ pub struct UpdateLikes<'info> {
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
     #[account(mut)]
-    pub liker: Signer<'info>,
+    pub liker: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
