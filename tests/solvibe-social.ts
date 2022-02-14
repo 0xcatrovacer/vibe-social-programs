@@ -146,4 +146,20 @@ describe("solvibe-social", () => {
             );
         });
     });
+
+    it("can filter tweets by topic", async () => {
+        const vibes = await program.account.vibe.all([
+            {
+                memcmp: {
+                    offset: 8 + 32 + 8 + 4,
+                    bytes: bs58.encode(Buffer.from("Vibe!")),
+                },
+            },
+        ]);
+
+        assert.equal(vibes.length, 2);
+        vibes.every((vibe) => {
+            assert.equal(vibe.account.topic, "Vibe!");
+        });
+    });
 });
