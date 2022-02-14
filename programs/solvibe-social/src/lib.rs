@@ -6,12 +6,12 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod solvibe_social {
     use super::*;
 
-    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
+    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String, vibe_account_bump: u8) -> ProgramResult {
 
         let vibe = &mut ctx.accounts.vibe;
         let author = &mut ctx.accounts.author;
         let clock = Clock::get().unwrap();
-
+        
         if topic.chars().count() > 50 {
             return Err(ErrorCode::TopicTooLong.into())
         }
@@ -19,12 +19,13 @@ pub mod solvibe_social {
         if content.chars().count() > 300 {
             return Err(ErrorCode::ContentTooLong.into())
         }
-
+        
         vibe.author = *author.key;
         vibe.timestamp = clock.unix_timestamp;
         vibe.topic = topic;
         vibe.content = content;
         vibe.likes = 0;
+        vibe.bump = vibe_account_bump;
 
         Ok(())
     }
@@ -44,8 +45,9 @@ pub mod solvibe_social {
 }
 
 #[derive(Accounts)]
+#[instruction(vibe_account_bump: u8)]
 pub struct CreateVibe<'info> {
-    #[account(init, payer = author, space = Vibe::LEN)]
+    #[account(init, seeds = [b"vibe_post", author.key().as_ref()], bump = vibe_account_bump, payer = author)]
     pub vibe: Account<'info, Vibe>,
     #[account(mut)]
     pub author: Signer<'info>,
@@ -68,12 +70,14 @@ pub struct DeleteVibe<'info> {
 }
 
 #[account]
+#[derive(Default)]
 pub struct Vibe {
     pub author: Pubkey,
     pub timestamp: i64,
     pub topic: String,
     pub content: String,
     pub likes: u32,
+    bump: u8,
 }
 
 #[error]
@@ -82,24 +86,4 @@ pub enum ErrorCode {
     TopicTooLong,
     #[msg("The provided content should be 300 characters long maximum.")]
     ContentTooLong,
-}
-
-
-
-//Size of a Vibe
-const DISCRIMINATOR_LENGTH: usize = 8;
-const PUBLIC_KEY_LENGTH: usize = 32;
-const TIMESTAMP_LENGTH: usize = 8;
-const STRING_LENGTH_PREFIX: usize = 4;
-const MAX_TOPIC_LENGTH: usize = 50 * 4;
-const MAX_CONTENT_LENGTH: usize = 300 * 4;
-const MAX_LIKES_LENGTH: usize = 4;
-
-impl Vibe {
-    const LEN: usize = DISCRIMINATOR_LENGTH
-        + PUBLIC_KEY_LENGTH // Author.
-        + TIMESTAMP_LENGTH // Timestamp.
-        + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
-        + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
-        + MAX_LIKES_LENGTH; // Likes.
 }
