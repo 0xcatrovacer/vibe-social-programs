@@ -147,7 +147,7 @@ describe("solvibe-social", () => {
         });
     });
 
-    it("can filter tweets by topic", async () => {
+    it("can filter vibes by topic", async () => {
         const vibes = await program.account.vibe.all([
             {
                 memcmp: {
@@ -161,5 +161,36 @@ describe("solvibe-social", () => {
         vibes.every((vibe) => {
             assert.equal(vibe.account.topic, "Vibe!");
         });
+    });
+
+    it("can delete vibe", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
+
+        await program.rpc.createVibe("Vibe!", "Vibe to be Deleted", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
+
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.ok(createdVibe !== null);
+
+        await program.rpc.deleteVibe({
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+            },
+        });
+
+        const deletedVibe = await program.account.vibe.fetchNullable(
+            vibe.publicKey
+        );
+
+        assert.ok(deletedVibe === null);
     });
 });
