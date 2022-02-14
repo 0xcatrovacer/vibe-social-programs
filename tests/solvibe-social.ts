@@ -12,7 +12,7 @@ describe("solvibe-social", () => {
     it("can create a new vibe", async () => {
         const vibe = anchor.web3.Keypair.generate();
 
-        await program.rpc.createVibe("First Vibe!", "Vibe Content!", {
+        await program.rpc.createVibe("Vibe!", "Vibe Content!", {
             accounts: {
                 vibe: vibe.publicKey,
                 author: program.provider.wallet.publicKey,
@@ -23,7 +23,7 @@ describe("solvibe-social", () => {
 
         const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
 
-        assert.equal(createdVibe.topic, "First Vibe!");
+        assert.equal(createdVibe.topic, "Vibe!");
         assert.equal(createdVibe.content, "Vibe Content!");
         assert.equal(
             createdVibe.author.toBase58(),
@@ -114,5 +114,36 @@ describe("solvibe-social", () => {
     it("can fetch all vibes", async () => {
         const vibes = await program.account.vibe.all();
         assert.equal(vibes.length, 2);
+    });
+
+    it("can filter vibes by author", async () => {
+        const newVibe = anchor.web3.Keypair.generate();
+        const author = await program.provider.wallet;
+        await program.rpc.createVibe("Vibe!", "Another Vibe Content!", {
+            accounts: {
+                vibe: newVibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [newVibe],
+        });
+
+        const vibes = await program.account.vibe.all([
+            {
+                memcmp: {
+                    offset: 8,
+                    bytes: author.publicKey.toBase58(),
+                },
+            },
+        ]);
+
+        assert.equal(vibes.length, 2);
+
+        vibes.every((vibe) => {
+            assert.equal(
+                vibe.account.author.toBase58(),
+                author.publicKey.toBase58()
+            );
+        });
     });
 });
