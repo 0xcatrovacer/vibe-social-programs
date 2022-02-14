@@ -258,4 +258,33 @@ describe("solvibe-social", () => {
 
         assert.equal(likedVibe.likes, 1);
     });
+
+    it("can like someone else's vibe", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
+
+        await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
+
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(createdVibe.likes, 0);
+
+        await program.rpc.updateLikes({
+            accounts: {
+                vibe: vibe.publicKey,
+                liker: anchor.web3.Keypair.generate().publicKey,
+            },
+        });
+
+        const likedVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(likedVibe.likes, 1);
+    });
 });
