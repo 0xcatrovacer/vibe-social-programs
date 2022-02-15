@@ -427,6 +427,7 @@ describe("solvibe-social", () => {
     it("can be liked by someone else", async () => {
         const vibe = anchor.web3.Keypair.generate();
         const author = program.provider.wallet;
+
         await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
             accounts: {
                 vibe: vibe.publicKey,
@@ -435,6 +436,7 @@ describe("solvibe-social", () => {
             },
             signers: [vibe],
         });
+
         const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
         assert.equal(createdVibe.likes, 0);
 
@@ -470,110 +472,110 @@ describe("solvibe-social", () => {
         assert.equal(likedVibe.likes, 1);
     });
 
-    //     it("can like same vibe by different users", async () => {
-    //         const vibe = anchor.web3.Keypair.generate();
-    //         const author = program.provider.wallet;
+    it("can like same vibe by different users", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
 
-    //         await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
-    //             accounts: {
-    //                 vibe: vibe.publicKey,
-    //                 author: author.publicKey,
-    //                 systemProgram: anchor.web3.SystemProgram.programId,
-    //             },
-    //             signers: [vibe],
-    //         });
+        await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
 
-    //         const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
 
-    //         assert.equal(createdVibe.likes, 0);
+        assert.equal(createdVibe.likes, 0);
 
-    //         const [likeAccount, likeBump] =
-    //             await anchor.web3.PublicKey.findProgramAddress(
-    //                 [
-    //                     Buffer.from("vibe_like"),
-    //                     author.publicKey.toBuffer(),
-    //                     vibe.publicKey.toBuffer(),
-    //                 ],
-    //                 program.programId
-    //             );
+        const [likeAccount, likeBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    author.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
 
-    //         await program.rpc.updateLikes(likeBump, {
-    //             accounts: {
-    //                 like: likeAccount.toBase58(),
-    //                 vibe: vibe.publicKey,
-    //                 liker: author.publicKey,
-    //                 systemProgram: anchor.web3.SystemProgram.programId,
-    //             },
-    //         });
+        await program.rpc.updateLikes(likeBump, {
+            accounts: {
+                like: likeAccount.toBase58(),
+                vibe: vibe.publicKey,
+                liker: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+        });
 
-    //         const likedVibe1 = await program.account.vibe.fetch(vibe.publicKey);
+        const likedVibe1 = await program.account.vibe.fetch(vibe.publicKey);
 
-    //         assert.equal(likedVibe1.likes, 1);
+        assert.equal(likedVibe1.likes, 1);
 
-    //         const otherliker1 = anchor.web3.Keypair.generate();
+        const otherliker1 = anchor.web3.Keypair.generate();
 
-    //         const signature = await program.provider.connection.requestAirdrop(
-    //             otherliker1.publicKey,
-    //             1000000000
-    //         );
+        const signature = await program.provider.connection.requestAirdrop(
+            otherliker1.publicKey,
+            1000000000
+        );
 
-    //         await program.provider.connection.confirmTransaction(signature);
+        await program.provider.connection.confirmTransaction(signature);
 
-    //         const [likeAccount1, likeBump1] =
-    //             await anchor.web3.PublicKey.findProgramAddress(
-    //                 [
-    //                     Buffer.from("vibe_like"),
-    //                     otherliker1.publicKey.toBuffer(),
-    //                     vibe.publicKey.toBuffer(),
-    //                 ],
-    //                 program.programId
-    //             );
+        const [likeAccount1, likeBump1] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    otherliker1.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
 
-    //         await program.rpc.updateLikes(likeBump1, {
-    //             accounts: {
-    //                 like: likeAccount1.toBase58(),
-    //                 vibe: vibe.publicKey,
-    //                 liker: otherliker1.publicKey,
-    //                 systemProgram: anchor.web3.SystemProgram.programId,
-    //             },
-    //             signers: [otherliker1],
-    //         });
+        await program.rpc.updateLikes(likeBump1, {
+            accounts: {
+                like: likeAccount1.toBase58(),
+                vibe: vibe.publicKey,
+                liker: otherliker1.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [otherliker1],
+        });
 
-    //         const likedVibe2 = await program.account.vibe.fetch(vibe.publicKey);
+        const likedVibe2 = await program.account.vibe.fetch(vibe.publicKey);
 
-    //         assert.equal(likedVibe2.likes, 2);
+        assert.equal(likedVibe2.likes, 2);
 
-    //         const otherliker2 = anchor.web3.Keypair.generate();
+        const otherliker2 = anchor.web3.Keypair.generate();
 
-    //         const signature2 = await program.provider.connection.requestAirdrop(
-    //             otherliker2.publicKey,
-    //             1000000000
-    //         );
+        const signature2 = await program.provider.connection.requestAirdrop(
+            otherliker2.publicKey,
+            1000000000
+        );
 
-    //         await program.provider.connection.confirmTransaction(signature2);
+        await program.provider.connection.confirmTransaction(signature2);
 
-    //         const [likeAccount2, likeBump2] =
-    //             await anchor.web3.PublicKey.findProgramAddress(
-    //                 [
-    //                     Buffer.from("vibe_like"),
-    //                     otherliker2.publicKey.toBuffer(),
-    //                     vibe.publicKey.toBuffer(),
-    //                 ],
-    //                 program.programId
-    //             );
+        const [likeAccount2, likeBump2] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    otherliker2.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
 
-    //         await program.rpc.updateLikes(likeBump2, {
-    //             accounts: {
-    //                 like: likeAccount2.toBase58(),
-    //                 vibe: vibe.publicKey,
-    //                 liker: otherliker2.publicKey,
-    //                 systemProgram: anchor.web3.SystemProgram.programId,
-    //             },
-    //             signers: [otherliker2],
-    //         });
+        await program.rpc.updateLikes(likeBump2, {
+            accounts: {
+                like: likeAccount2.toBase58(),
+                vibe: vibe.publicKey,
+                liker: otherliker2.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [otherliker2],
+        });
 
-    //         const likedVibe3 = await program.account.vibe.fetch(vibe.publicKey);
+        const likedVibe3 = await program.account.vibe.fetch(vibe.publicKey);
 
-    //         assert.equal(likedVibe3.likes, 3);
-    //     });
+        assert.equal(likedVibe3.likes, 3);
+    });
 });
