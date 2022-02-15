@@ -371,4 +371,61 @@ describe("solvibe-social", () => {
 
         assert.equal(likedVibe.likes, 1);
     });
+
+    it("cannot like someone else's vibe twice", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = anchor.web3.Keypair.generate();
+
+        const signature = await program.provider.connection.requestAirdrop(
+            author.publicKey,
+            1000000000
+        );
+
+        await program.provider.connection.confirmTransaction(signature);
+
+        await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe, author],
+        });
+
+        const liker = program.provider.wallet.publicKey;
+
+        const [likeAccount, likeBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    liker.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        await program.rpc.updateLikes(likeBump, {
+            accounts: {
+                like: likeAccount.toBase58(),
+                vibe: vibe.publicKey,
+                liker: liker,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+        });
+
+        try {
+            await program.rpc.updateLikes(likeBump, {
+                accounts: {
+                    like: likeAccount.toBase58(),
+                    vibe: vibe.publicKey,
+                    liker: liker,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                },
+            });
+
+            assert.fail();
+        } catch (e) {
+            assert.ok("Cannot like someone else's vibe twice");
+        }
+    });
 });
