@@ -279,6 +279,49 @@ describe("solvibe-social", () => {
         assert.equal(likedVibe.likes, 1);
     });
 
+    it("cannot like own vibe twice", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
+
+        await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
+
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(createdVibe.likes, 0);
+
+        try {
+            const [likeAccount, likeBump] =
+                await anchor.web3.PublicKey.findProgramAddress(
+                    [
+                        Buffer.from("vibe_like"),
+                        author.publicKey.toBuffer(),
+                        vibe.publicKey.toBuffer(),
+                    ],
+                    program.programId
+                );
+
+            await program.rpc.updateLikes(likeBump, {
+                accounts: {
+                    like: likeAccount.toBase58(),
+                    vibe: vibe.publicKey,
+                    liker: author.publicKey,
+                    systemProgram: anchor.web3.SystemProgram.programId,
+                },
+            });
+
+            assert.fail();
+        } catch (e) {
+            assert.ok("Cannot like own vibe twice");
+        }
+    });
+
     it("can like someone else's vibe", async () => {
         const vibe = anchor.web3.Keypair.generate();
         const author = anchor.web3.Keypair.generate();
