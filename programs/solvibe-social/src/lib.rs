@@ -6,7 +6,7 @@ declare_id!("3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz");
 pub mod solvibe_social {
     use super::*;
 
-    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String, vibe_account_bump: u8) -> ProgramResult {
+    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
 
         let vibe = &mut ctx.accounts.vibe;
         let author = &mut ctx.accounts.author;
@@ -25,14 +25,15 @@ pub mod solvibe_social {
         vibe.topic = topic;
         vibe.content = content;
         vibe.likes = 0;
-        vibe.bump = vibe_account_bump;
 
         Ok(())
     }
 
-    pub fn update_likes(ctx: Context<UpdateLikes>) -> ProgramResult {
+    pub fn update_likes(ctx: Context<UpdateLikes>, like_account_bump: u8) -> ProgramResult {
         let vibe = &mut ctx.accounts.vibe;
+        let like = &mut ctx.accounts.like;
         
+        like.bump = like_account_bump;
         vibe.likes += 1;
         
         Ok(())
@@ -45,9 +46,8 @@ pub mod solvibe_social {
 }
 
 #[derive(Accounts)]
-#[instruction(topic: String, content: String, vibe_account_bump: u8)]
 pub struct CreateVibe<'info> {
-    #[account(init, seeds = [b"vibe_post", author.key().as_ref()], bump = vibe_account_bump, payer = author, space = Vibe::LEN)]
+    #[account(init, payer = author, space = Vibe::LEN)]
     pub vibe: Account<'info, Vibe>,
     #[account(mut)]
     pub author: Signer<'info>,
@@ -55,10 +55,14 @@ pub struct CreateVibe<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(like_account_bump: u8)]
 pub struct UpdateLikes<'info> {
-    #[account(mut, seeds = [b"vibe_post", liker.key().as_ref()], bump = vibe.bump)]
+    #[account(init, seeds = [b"vibe_post", liker.key().as_ref()], bump = like_account_bump, payer = liker, space = Like::LEN )]
+    pub like: Account<'info, Like>,
+    #[account(mut)]
     pub vibe: Account<'info, Vibe>,
     pub liker: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -75,6 +79,10 @@ pub struct Vibe {
     pub topic: String,
     pub content: String,
     pub likes: u32,
+}
+
+#[account]
+pub struct Like {
     pub bump: u8,
 }
 
@@ -87,21 +95,28 @@ pub enum ErrorCode {
 }
 
 //Size of a Vibe
-const DISCRIMINATOR_LENGTH: usize = 8;
+const VIBE_DISCRIMINATOR_LENGTH: usize = 8;
 const PUBLIC_KEY_LENGTH: usize = 32;
 const TIMESTAMP_LENGTH: usize = 8;
 const STRING_LENGTH_PREFIX: usize = 4;
 const MAX_TOPIC_LENGTH: usize = 50 * 4;
 const MAX_CONTENT_LENGTH: usize = 300 * 4;
 const MAX_LIKES_LENGTH: usize = 4;
-const MAX_BUMP_SIZE: usize = 1;
 
 impl Vibe {
-    const LEN: usize = DISCRIMINATOR_LENGTH
+    const LEN: usize = VIBE_DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH // Author.
         + TIMESTAMP_LENGTH // Timestamp.
         + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
         + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
-        + MAX_LIKES_LENGTH // Likes.
+        + MAX_LIKES_LENGTH; // Likes.
+
+}
+
+//Size of a Like
+const LIKE_DISCRIMINATOR_LENGTH: usize = 8;
+const MAX_BUMP_SIZE: usize = 1;
+impl Like {
+    const LEN: usize = LIKE_DISCRIMINATOR_LENGTH
         + MAX_BUMP_SIZE; //Bump
 }
