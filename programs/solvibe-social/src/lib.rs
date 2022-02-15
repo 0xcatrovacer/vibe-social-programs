@@ -61,7 +61,8 @@ pub struct UpdateLikes<'info> {
     pub like: Account<'info, Like>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
-    pub liker: AccountInfo<'info>,
+    #[account(mut)]
+    pub liker: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -69,6 +70,7 @@ pub struct UpdateLikes<'info> {
 pub struct DeleteVibe<'info> {
     #[account(mut, has_one = author, close = author)]
     pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
     pub author: Signer<'info>,
 }
 
