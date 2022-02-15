@@ -10,12 +10,18 @@ describe("solvibe-social", () => {
     const program = anchor.workspace.SolvibeSocial as Program<SolvibeSocial>;
 
     it("can create a new vibe", async () => {
+        // const [vibe, vibeBump] = await anchor.web3.PublicKey.findProgramAddress(
+        //     [Buffer.from("vibe_post"), author.toBuffer()],
+        //     program.programId
+        // );
+
+        const author = program.provider.wallet.publicKey;
         const vibe = anchor.web3.Keypair.generate();
 
         await program.rpc.createVibe("Vibe!", "Vibe Content!", {
             accounts: {
                 vibe: vibe.publicKey,
-                author: program.provider.wallet.publicKey,
+                author: author,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
             signers: [vibe],
@@ -41,6 +47,7 @@ describe("solvibe-social", () => {
             newUser.publicKey,
             1000000000
         );
+
         await program.provider.connection.confirmTransaction(signature);
 
         await program.rpc.createVibe("New User!", "Vibe From New User", {
@@ -66,6 +73,7 @@ describe("solvibe-social", () => {
 
     it("cannot provide topic with more than 50 characters", async () => {
         try {
+            const author = program.provider.wallet.publicKey;
             const vibe = anchor.web3.Keypair.generate();
 
             await program.rpc.createVibe(
@@ -74,7 +82,7 @@ describe("solvibe-social", () => {
                 {
                     accounts: {
                         vibe: vibe.publicKey,
-                        author: program.provider.wallet.publicKey,
+                        author: author,
                         systemProgram: anchor.web3.SystemProgram.programId,
                     },
                     signers: [vibe],
@@ -247,10 +255,22 @@ describe("solvibe-social", () => {
 
         assert.equal(createdVibe.likes, 0);
 
-        await program.rpc.updateLikes({
+        const [likeAccount, likeBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    author.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        await program.rpc.updateLikes(likeBump, {
             accounts: {
+                like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
                 liker: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
             },
         });
 
@@ -261,7 +281,14 @@ describe("solvibe-social", () => {
 
     it("can like someone else's vibe", async () => {
         const vibe = anchor.web3.Keypair.generate();
-        const author = program.provider.wallet;
+        const author = anchor.web3.Keypair.generate();
+
+        const signature = await program.provider.connection.requestAirdrop(
+            author.publicKey,
+            1000000000
+        );
+
+        await program.provider.connection.confirmTransaction(signature);
 
         await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
             accounts: {
@@ -269,17 +296,31 @@ describe("solvibe-social", () => {
                 author: author.publicKey,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
-            signers: [vibe],
+            signers: [vibe, author],
         });
 
         const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
 
         assert.equal(createdVibe.likes, 0);
 
-        await program.rpc.updateLikes({
+        const liker = program.provider.wallet.publicKey;
+
+        const [likeAccount, likeBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    liker.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        await program.rpc.updateLikes(likeBump, {
             accounts: {
+                like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
-                liker: anchor.web3.Keypair.generate().publicKey,
+                liker: liker,
+                systemProgram: anchor.web3.SystemProgram.programId,
             },
         });
 
