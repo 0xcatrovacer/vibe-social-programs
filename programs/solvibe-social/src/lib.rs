@@ -75,7 +75,7 @@ pub struct Vibe {
     pub topic: String,
     pub content: String,
     pub likes: u32,
-    bump: u8,
+    pub bump: u8,
 }
 
 #[error]
@@ -94,6 +94,7 @@ const STRING_LENGTH_PREFIX: usize = 4;
 const MAX_TOPIC_LENGTH: usize = 50 * 4;
 const MAX_CONTENT_LENGTH: usize = 300 * 4;
 const MAX_LIKES_LENGTH: usize = 4;
+const MAX_BUMP_SIZE: usize = 1;
 
 impl Vibe {
     const LEN: usize = DISCRIMINATOR_LENGTH
@@ -101,5 +102,6 @@ impl Vibe {
         + TIMESTAMP_LENGTH // Timestamp.
         + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
         + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
-        + MAX_LIKES_LENGTH; // Likes.
+        + MAX_LIKES_LENGTH // Likes.
+        + MAX_BUMP_SIZE; //Bump
 }
