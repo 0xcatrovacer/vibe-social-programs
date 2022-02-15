@@ -56,9 +56,8 @@ pub struct CreateVibe<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateLikes<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"vibe_post", liker.key().as_ref()], bump = vibe.bump)]
     pub vibe: Account<'info, Vibe>,
-    #[account(mut)]
     pub liker: AccountInfo<'info>,
 }
 
