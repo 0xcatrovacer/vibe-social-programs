@@ -45,9 +45,9 @@ pub mod solvibe_social {
 }
 
 #[derive(Accounts)]
-#[instruction(vibe_account_bump: u8)]
+#[instruction(topic: String, content: String, vibe_account_bump: u8)]
 pub struct CreateVibe<'info> {
-    #[account(init, seeds = [b"vibe_post", author.key().as_ref()], bump = vibe_account_bump, payer = author)]
+    #[account(init, seeds = [b"vibe_post", author.key().as_ref()], bump = vibe_account_bump, payer = author, space = Vibe::LEN)]
     pub vibe: Account<'info, Vibe>,
     #[account(mut)]
     pub author: Signer<'info>,
@@ -69,7 +69,6 @@ pub struct DeleteVibe<'info> {
 }
 
 #[account]
-#[derive(Default)]
 pub struct Vibe {
     pub author: Pubkey,
     pub timestamp: i64,
@@ -85,4 +84,22 @@ pub enum ErrorCode {
     TopicTooLong,
     #[msg("The provided content should be 300 characters long maximum.")]
     ContentTooLong,
+}
+
+//Size of a Vibe
+const DISCRIMINATOR_LENGTH: usize = 8;
+const PUBLIC_KEY_LENGTH: usize = 32;
+const TIMESTAMP_LENGTH: usize = 8;
+const STRING_LENGTH_PREFIX: usize = 4;
+const MAX_TOPIC_LENGTH: usize = 50 * 4;
+const MAX_CONTENT_LENGTH: usize = 300 * 4;
+const MAX_LIKES_LENGTH: usize = 4;
+
+impl Vibe {
+    const LEN: usize = DISCRIMINATOR_LENGTH
+        + PUBLIC_KEY_LENGTH // Author.
+        + TIMESTAMP_LENGTH // Timestamp.
+        + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
+        + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
+        + MAX_LIKES_LENGTH; // Likes.
 }
