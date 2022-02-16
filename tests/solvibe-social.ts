@@ -578,4 +578,57 @@ describe("solvibe-social", () => {
 
         assert.equal(likedVibe3.likes, 3);
     });
+
+    it("can like, unlike vibe", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
+
+        await program.rpc.createVibe("Vibe!", "Vibe to be Liked", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
+
+        const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(createdVibe.likes, 0);
+
+        const [likeAccount, likeBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_like"),
+                    author.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        await program.rpc.updateLikes(likeBump, {
+            accounts: {
+                like: likeAccount.toBase58(),
+                vibe: vibe.publicKey,
+                liker: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+        });
+
+        const likedVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(likedVibe.likes, 1);
+
+        await program.rpc.removeLike(likeBump, {
+            accounts: {
+                like: likeAccount.toBase58(),
+                vibe: vibe.publicKey,
+                liker: author.publicKey,
+            },
+        });
+
+        const unLikedVibe = await program.account.vibe.fetch(vibe.publicKey);
+
+        assert.equal(unLikedVibe.likes, 0);
+    });
 });
