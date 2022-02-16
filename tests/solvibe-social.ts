@@ -31,7 +31,7 @@ describe("solvibe-social", () => {
             program.provider.wallet.publicKey.toBase58()
         );
         assert.equal(createdVibe.likes, 0);
-        assert.equal(createdVibe.comment, 0);
+        assert.equal(createdVibe.comments, 0);
         assert.ok(createdVibe.timestamp);
     });
 
@@ -64,7 +64,7 @@ describe("solvibe-social", () => {
             newUser.publicKey.toBase58()
         );
         assert.equal(createdVibe.likes, 0);
-        assert.equal(createdVibe.comment, 0);
+        assert.equal(createdVibe.comments, 0);
         assert.ok(createdVibe.timestamp);
     });
 
@@ -118,7 +118,7 @@ describe("solvibe-social", () => {
 
     it("can fetch all vibes", async () => {
         const vibes = await program.account.vibe.all();
-        assert.equal(vibes.length, 2);
+        assert.equal(vibes.length, 3);
     });
 
     it("can filter vibes by author", async () => {
@@ -142,7 +142,7 @@ describe("solvibe-social", () => {
             },
         ]);
 
-        assert.equal(vibes.length, 2);
+        assert.equal(vibes.length, 3);
 
         vibes.every((vibe) => {
             assert.equal(
