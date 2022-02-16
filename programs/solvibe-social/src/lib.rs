@@ -25,6 +25,7 @@ pub mod solvibe_social {
         vibe.topic = topic;
         vibe.content = content;
         vibe.likes = 0;
+        vibe.comments = 0;
 
         Ok(())
     }
@@ -53,14 +54,20 @@ pub mod solvibe_social {
     pub fn add_comment(ctx: Context<AddComment>, comment: String, comment_account_bump: u8) -> ProgramResult {
         let comment_account = &mut ctx.accounts.comment;
         let commentor = &mut ctx.accounts.commentor;
+        let vibe = &mut ctx.accounts.vibe;
 
         comment_account.commentor = *commentor.key;
         comment_account.comment = comment;
         comment_account.bump = comment_account_bump;
+
+        vibe.comments += 1;
+
         Ok(())
     }
 
-    pub fn remove_comment(_ctx: Context<RemoveComment>, _comment_account_bump: u8) -> ProgramResult {
+    pub fn remove_comment(ctx: Context<RemoveComment>, _comment_account_bump: u8) -> ProgramResult {
+        let vibe = &mut ctx.accounts.vibe;
+        vibe.comments += 1;
         Ok(())
     }
 }
@@ -135,6 +142,7 @@ pub struct Vibe {
     pub topic: String,
     pub content: String,
     pub likes: u32,
+    pub comments: u32,
 }
 
 #[account]
@@ -165,6 +173,7 @@ const STRING_LENGTH_PREFIX: usize = 4;
 const MAX_TOPIC_LENGTH: usize = 50 * 4;
 const MAX_CONTENT_LENGTH: usize = 300 * 4;
 const MAX_LIKES_LENGTH: usize = 4;
+const MAX_COMMENT_NUMBER_LENGTH: usize = 4;
 
 impl Vibe {
     const LEN: usize = VIBE_DISCRIMINATOR_LENGTH
@@ -172,7 +181,8 @@ impl Vibe {
         + TIMESTAMP_LENGTH // Timestamp.
         + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
         + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH // Content.
-        + MAX_LIKES_LENGTH; // Likes.
+        + MAX_LIKES_LENGTH // Likes.
+        + MAX_COMMENT_NUMBER_LENGTH; // Comments.
 
 }
 
