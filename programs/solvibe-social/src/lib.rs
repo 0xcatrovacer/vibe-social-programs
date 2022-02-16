@@ -39,6 +39,15 @@ pub mod solvibe_social {
         Ok(())
     }
 
+    pub fn remove_like(ctx: Context<RemoveLike>, like_account_bump: u8) -> ProgramResult {
+        let vibe = &mut ctx.accounts.vibe;
+        let like = &mut ctx.accounts.like;
+        
+        like.bump = like_account_bump;
+        vibe.likes -= 1;
+        Ok(())
+    }
+
     pub fn delete_vibe(_ctx: Context<DeleteVibe>) -> ProgramResult {
         Ok(())
     }
@@ -64,6 +73,17 @@ pub struct UpdateLikes<'info> {
     #[account(mut)]
     pub liker: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(like_account_bump: u8)]
+pub struct RemoveLike<'info> {
+    #[account(mut, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump = like_account_bump, close = liker)]
+    pub like: Account<'info, Like>,
+    #[account(mut)]
+    pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
+    pub liker: Signer<'info>,
 }
 
 #[derive(Accounts)]
