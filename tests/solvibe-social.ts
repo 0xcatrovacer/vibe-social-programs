@@ -31,6 +31,7 @@ describe("solvibe-social", () => {
             program.provider.wallet.publicKey.toBase58()
         );
         assert.equal(createdVibe.likes, 0);
+        assert.equal(createdVibe.comment, 0);
         assert.ok(createdVibe.timestamp);
     });
 
@@ -63,6 +64,7 @@ describe("solvibe-social", () => {
             newUser.publicKey.toBase58()
         );
         assert.equal(createdVibe.likes, 0);
+        assert.equal(createdVibe.comment, 0);
         assert.ok(createdVibe.timestamp);
     });
 
