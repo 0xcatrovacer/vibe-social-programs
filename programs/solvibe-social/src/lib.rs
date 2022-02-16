@@ -51,6 +51,14 @@ pub mod solvibe_social {
     pub fn delete_vibe(_ctx: Context<DeleteVibe>) -> ProgramResult {
         Ok(())
     }
+
+    pub fn add_comment(ctx: Context<AddComment>, comment: String, comment_account_bump: u8) -> ProgramResult {
+        let comment_account = &mut ctx.accounts.comment;
+
+        comment_account.comment = comment;
+        comment_account.bump = comment_account_bump;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -93,6 +101,18 @@ pub struct DeleteVibe<'info> {
     pub author: Signer<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(comment: String, comment_account_bump: u8)]
+pub struct AddComment<'info> {
+    #[account(init, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment_account_bump, payer = commentor, space = Comment::LEN)]
+    pub comment: Account<'info, Comment>,
+    #[account(mut)]
+    pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
+    pub commentor: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 pub struct Vibe {
     pub author: Pubkey,
@@ -110,6 +130,7 @@ pub struct Like {
 #[account]
 pub struct Comment {
     pub comment: String,
+    pub bump: u8,
 }
 
 #[error]
