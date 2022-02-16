@@ -21,5 +21,34 @@ describe("solvibe-comments", () => {
             },
             signers: [vibe],
         });
+
+        const [commentAccount, commentBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_comment"),
+                    author.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        await program.rpc.addComment("New Comment", commentBump, {
+            accounts: {
+                comment: commentAccount,
+                vibe: vibe.publicKey,
+                commentor: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+        });
+
+        const createdComment = await program.account.comment.fetch(
+            commentAccount
+        );
+
+        assert.equal(
+            createdComment.commentor.toBase58(),
+            author.publicKey.toBase58()
+        );
+        assert.equal(createdComment.comment, "New Comment");
     });
 });
