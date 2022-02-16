@@ -39,11 +39,9 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn remove_like(ctx: Context<RemoveLike>, like_account_bump: u8) -> ProgramResult {
+    pub fn remove_like(ctx: Context<RemoveLike>, _like_account_bump: u8) -> ProgramResult {
         let vibe = &mut ctx.accounts.vibe;
-        let like = &mut ctx.accounts.like;
-        
-        like.bump = like_account_bump;
+    
         vibe.likes -= 1;
         Ok(())
     }
@@ -52,6 +50,19 @@ pub mod solvibe_social {
         Ok(())
     }
 
+    pub fn add_comment(ctx: Context<AddComment>, comment: String, comment_account_bump: u8) -> ProgramResult {
+        let comment_account = &mut ctx.accounts.comment;
+        let commentor = &mut ctx.accounts.commentor;
+
+        comment_account.commentor = *commentor.key;
+        comment_account.comment = comment;
+        comment_account.bump = comment_account_bump;
+        Ok(())
+    }
+
+    pub fn remove_comment(_ctx: Context<RemoveComment>, _comment_account_bump: u8) -> ProgramResult {
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -94,6 +105,29 @@ pub struct DeleteVibe<'info> {
     pub author: Signer<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(comment: String, comment_account_bump: u8)]
+pub struct AddComment<'info> {
+    #[account(init, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment_account_bump, payer = commentor, space = Comment::LEN)]
+    pub comment: Account<'info, Comment>,
+    #[account(mut)]
+    pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
+    pub commentor: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(comment_account_bump: u8)]
+pub struct RemoveComment<'info> {
+    #[account(mut, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment_account_bump, close = commentor)]
+    pub comment: Account<'info, Comment>,
+    #[account(mut)]
+    pub vibe: Account<'info, Vibe>,
+    #[account(mut)]
+    pub commentor: Signer<'info>,
+}
+
 #[account]
 pub struct Vibe {
     pub author: Pubkey,
@@ -105,6 +139,13 @@ pub struct Vibe {
 
 #[account]
 pub struct Like {
+    pub bump: u8,
+}
+
+#[account]
+pub struct Comment {
+    pub commentor: Pubkey,
+    pub comment: String,
     pub bump: u8,
 }
 
@@ -140,5 +181,17 @@ const LIKE_DISCRIMINATOR_LENGTH: usize = 8;
 const MAX_BUMP_SIZE: usize = 1;
 impl Like {
     const LEN: usize = LIKE_DISCRIMINATOR_LENGTH
-        + MAX_BUMP_SIZE; //Bump
+        + MAX_BUMP_SIZE; //Bump.
+}
+
+//Size of Comment
+const COMMENT_DISCRIMINATOR_LENGTH: usize = 8;
+const COMMENTOR_PUBLIC_KEY_LENGTH: usize = 32;
+const COMMENT_STRING_LENGTH_PREFIX: usize = 4;
+const MAX_COMMENT_LENGTH: usize = 150 * 4;
+
+impl Comment {
+    const LEN: usize = COMMENT_DISCRIMINATOR_LENGTH
+        + COMMENTOR_PUBLIC_KEY_LENGTH //Commentor.
+        + COMMENT_STRING_LENGTH_PREFIX + MAX_COMMENT_LENGTH; //Comment.
 }
