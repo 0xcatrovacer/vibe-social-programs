@@ -51,7 +51,6 @@ pub mod solvibe_social {
     pub fn delete_vibe(_ctx: Context<DeleteVibe>) -> ProgramResult {
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]
@@ -108,6 +107,11 @@ pub struct Like {
     pub bump: u8,
 }
 
+#[account]
+pub struct Comment {
+    pub comment: String,
+}
+
 #[error]
 pub enum ErrorCode {
     #[msg("The provided topic should be 50 characters long maximum.")]
@@ -140,5 +144,15 @@ const LIKE_DISCRIMINATOR_LENGTH: usize = 8;
 const MAX_BUMP_SIZE: usize = 1;
 impl Like {
     const LEN: usize = LIKE_DISCRIMINATOR_LENGTH
-        + MAX_BUMP_SIZE; //Bump
+        + MAX_BUMP_SIZE; //Bump.
+}
+
+//Size of Comment
+const COMMENT_DISCRIMINATOR_LENGTH: usize = 8;
+const COMMENT_STRING_LENGTH_PREFIX: usize = 4;
+const MAX_COMMENT_LENGTH: usize = 150 * 4;
+
+impl Comment {
+    const LEN: usize = COMMENT_DISCRIMINATOR_LENGTH
+        + COMMENT_STRING_LENGTH_PREFIX + MAX_COMMENT_LENGTH; //Comment.
 }
