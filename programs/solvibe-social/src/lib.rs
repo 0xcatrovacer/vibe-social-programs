@@ -10,6 +10,14 @@ pub mod solvibe_social {
         let user = &mut ctx.accounts.user_account;
         let author = &mut ctx.accounts.author;
 
+        if name.chars().count() > 20 {
+            return Err(ErrorCode::NameTooLong.into())
+        }
+
+        if username.chars().count() > 20 {
+            return Err(ErrorCode::NameTooLong.into())
+        }
+
         user.user_key =  *author.key;
         user.bump = account_user_bump;
         user.name = name;
@@ -67,6 +75,10 @@ pub mod solvibe_social {
         let comment_account = &mut ctx.accounts.comment;
         let commentor = &mut ctx.accounts.commentor;
         let vibe = &mut ctx.accounts.vibe;
+
+        if comment.chars().count() > 150 {
+            return Err(ErrorCode::CommentTooLong.into())
+        }
 
         comment_account.vibe = vibe.key();
         comment_account.commentor = *commentor.key;
@@ -191,10 +203,14 @@ pub struct Comment {
 
 #[error]
 pub enum ErrorCode {
+    #[msg("The provided name should be 20 characters long maximum")]
+    NameTooLong,
     #[msg("The provided topic should be 50 characters long maximum.")]
     TopicTooLong,
     #[msg("The provided content should be 300 characters long maximum.")]
     ContentTooLong,
+    #[msg("The provided comment should be 150 characters long maximum.")]
+    CommentTooLong,
 }
 
 
