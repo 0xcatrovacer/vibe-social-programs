@@ -6,6 +6,26 @@ declare_id!("3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz");
 pub mod solvibe_social {
     use super::*;
 
+    pub fn create_user(ctx: Context<CreateUser>, name: String, username: String, account_user_bump: u8) -> ProgramResult {
+        let user = &mut ctx.accounts.user_account;
+        let author = &mut ctx.accounts.author;
+
+        if name.chars().count() > 20 {
+            return Err(ErrorCode::NameTooLong.into())
+        }
+
+        if username.chars().count() > 20 {
+            return Err(ErrorCode::NameTooLong.into())
+        }
+
+        user.user_key =  *author.key;
+        user.bump = account_user_bump;
+        user.name = name;
+        user.username = username;
+
+        Ok(())
+    }
+
     pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
 
         let vibe = &mut ctx.accounts.vibe;
@@ -56,6 +76,10 @@ pub mod solvibe_social {
         let commentor = &mut ctx.accounts.commentor;
         let vibe = &mut ctx.accounts.vibe;
 
+        if comment.chars().count() > 150 {
+            return Err(ErrorCode::CommentTooLong.into())
+        }
+
         comment_account.vibe = vibe.key();
         comment_account.commentor = *commentor.key;
         comment_account.comment = comment;
@@ -71,6 +95,16 @@ pub mod solvibe_social {
         vibe.comments += 1;
         Ok(())
     }
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, username: String, account_user_bump: u8)]
+pub struct CreateUser<'info> {
+    #[account(init, seeds = [b"vibe_user", author.key().as_ref()], bump = account_user_bump, payer = author, space = User::LEN)]
+    pub user_account: Account<'info, User>,
+    #[account(mut)]
+    pub author: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -137,6 +171,14 @@ pub struct RemoveComment<'info> {
 }
 
 #[account]
+pub struct User {
+    pub user_key: Pubkey,
+    pub bump: u8,
+    pub name: String,
+    pub username: String,
+}
+
+#[account]
 pub struct Vibe {
     pub author: Pubkey,
     pub timestamp: i64,
@@ -161,10 +203,30 @@ pub struct Comment {
 
 #[error]
 pub enum ErrorCode {
+    #[msg("The provided name should be 20 characters long maximum")]
+    NameTooLong,
     #[msg("The provided topic should be 50 characters long maximum.")]
     TopicTooLong,
     #[msg("The provided content should be 300 characters long maximum.")]
     ContentTooLong,
+    #[msg("The provided comment should be 150 characters long maximum.")]
+    CommentTooLong,
+}
+
+
+//Size of an User
+const USER_DISCRIMINATOR_LENGTH: usize = 8;
+const USER_PUBLIC_KEY_LENGTH: usize = 32;
+const MAX_USER_BUMP_SIZE: usize = 1;
+const USER_STRING_LENGTH_PREFIX: usize = 4;
+const MAX_NAME_LENGTH: usize = 20 * 4;
+
+impl User {
+    const LEN: usize = USER_DISCRIMINATOR_LENGTH
+        + USER_PUBLIC_KEY_LENGTH  //Author.
+        + MAX_USER_BUMP_SIZE //Bump.
+        + USER_STRING_LENGTH_PREFIX + MAX_NAME_LENGTH //Name.
+        + USER_STRING_LENGTH_PREFIX + MAX_NAME_LENGTH; //Username.
 }
 
 //Size of a Vibe
