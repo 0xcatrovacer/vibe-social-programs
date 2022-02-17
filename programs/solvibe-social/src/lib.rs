@@ -56,6 +56,7 @@ pub mod solvibe_social {
         let commentor = &mut ctx.accounts.commentor;
         let vibe = &mut ctx.accounts.vibe;
 
+        comment_account.vibe = vibe.key();
         comment_account.commentor = *commentor.key;
         comment_account.comment = comment;
         comment_account.bump = comment_account_bump;
@@ -152,6 +153,7 @@ pub struct Like {
 
 #[account]
 pub struct Comment {
+    pub vibe: Pubkey,
     pub commentor: Pubkey,
     pub comment: String,
     pub bump: u8,
@@ -196,12 +198,14 @@ impl Like {
 
 //Size of Comment
 const COMMENT_DISCRIMINATOR_LENGTH: usize = 8;
+const VIBE_PUBLIC_KEY_LENGTH: usize = 32;
 const COMMENTOR_PUBLIC_KEY_LENGTH: usize = 32;
 const COMMENT_STRING_LENGTH_PREFIX: usize = 4;
 const MAX_COMMENT_LENGTH: usize = 150 * 4;
 
 impl Comment {
     const LEN: usize = COMMENT_DISCRIMINATOR_LENGTH
+        + VIBE_PUBLIC_KEY_LENGTH //Vibe.
         + COMMENTOR_PUBLIC_KEY_LENGTH //Commentor.
         + COMMENT_STRING_LENGTH_PREFIX + MAX_COMMENT_LENGTH; //Comment.
 }
