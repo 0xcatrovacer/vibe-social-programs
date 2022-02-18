@@ -199,4 +199,42 @@ describe("solvibe-comments", () => {
 
         assert.ok(deleltedComment === null);
     });
+
+    it("cannot delete uncreated comment", async () => {
+        const vibe = anchor.web3.Keypair.generate();
+        const author = program.provider.wallet;
+
+        await program.rpc.createVibe("New Vibe", "Comment to be Added", {
+            accounts: {
+                vibe: vibe.publicKey,
+                author: author.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [vibe],
+        });
+
+        const [commentAccount, commentBump] =
+            await anchor.web3.PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vibe_comment"),
+                    author.publicKey.toBuffer(),
+                    vibe.publicKey.toBuffer(),
+                ],
+                program.programId
+            );
+
+        try {
+            await program.rpc.removeComment(commentBump, {
+                accounts: {
+                    comment: commentAccount,
+                    vibe: vibe.publicKey,
+                    commentor: author.publicKey,
+                },
+            });
+
+            assert.fail("Should have failed deleting uncreated comment");
+        } catch (e) {
+            assert.ok("Failed deleting uncreated comment");
+        }
+    });
 });
