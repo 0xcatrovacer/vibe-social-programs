@@ -95,6 +95,16 @@ pub mod solvibe_social {
         vibe.comments += 1;
         Ok(())
     }
+
+    pub fn follow_one(ctx: Context<FollowOne>, followed: Pubkey, follow_account_bump: u8) -> ProgramResult {
+        let follow = &mut ctx.accounts.follow;
+        let follower = &mut ctx.accounts.follower;
+
+        follow.followed = followed;
+        follow.follower = *follower.key;
+        follow.bump = follow_account_bump;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -170,6 +180,16 @@ pub struct RemoveComment<'info> {
     pub commentor: Signer<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(followed: Pubkey, follow_account_bump: u8)]
+pub struct FollowOne<'info> {
+    #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, payer = follower, space = Follow::LEN)]
+    pub follow: Account<'info, Follow>,
+    #[account(mut)]
+    pub follower: Signer<'info>,
+    pub system_program: Program<'info, System>
+}
+
 #[account]
 pub struct User {
     pub user_key: Pubkey,
@@ -198,6 +218,13 @@ pub struct Comment {
     pub vibe: Pubkey,
     pub commentor: Pubkey,
     pub comment: String,
+    pub bump: u8,
+}
+
+#[account]
+pub struct Follow {
+    pub followed: Pubkey,
+    pub follower: Pubkey,
     pub bump: u8,
 }
 
@@ -270,4 +297,17 @@ impl Comment {
         + VIBE_PUBLIC_KEY_LENGTH //Vibe.
         + COMMENTOR_PUBLIC_KEY_LENGTH //Commentor.
         + COMMENT_STRING_LENGTH_PREFIX + MAX_COMMENT_LENGTH; //Comment.
+}
+
+//Size of Follow
+const FOLLOW_DISCRIMINATOR_LENGTH: usize = 8;
+const FOLLOWER_USER_PUBLIC_KEY_LENGTH: usize = 32;
+const FOLLOWED_USER_PUBLIC_KEY_LENGTH: usize = 32;
+const FOLLOW_BUMP: usize = 1;
+
+impl Follow {
+    const LEN: usize = FOLLOW_DISCRIMINATOR_LENGTH
+        + FOLLOWED_USER_PUBLIC_KEY_LENGTH // Followed
+        + FOLLOWER_USER_PUBLIC_KEY_LENGTH // Follower
+        + FOLLOW_BUMP; // Bump
 }
