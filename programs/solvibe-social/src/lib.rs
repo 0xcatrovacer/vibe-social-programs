@@ -108,6 +108,14 @@ pub mod solvibe_social {
         user.followers += 1;
         Ok(())
     }
+
+    pub fn unfollow(ctx: Context<UnFollow>, _followed: Pubkey, _follow_account_bump: u8) -> ProgramResult {
+        let user = &mut ctx.accounts.user;
+
+        user.followers -= 1;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -193,6 +201,17 @@ pub struct FollowOne<'info> {
     #[account(mut)]
     pub follower: Signer<'info>,
     pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+#[instruction(followed: Pubkey, follow_account_bump: u8)]
+pub struct UnFollow<'info> {
+    #[account(mut, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, close = follower)]
+    pub follow: Account<'info, Follow>,
+    #[account(mut)]
+    pub user: Account<'info, User>,
+    #[account(mut)]
+    pub follower: Signer<'info>,
 }
 
 #[account]
