@@ -140,7 +140,7 @@ describe("solvibe-comments", () => {
             },
         ]);
 
-        console.log(createdComments.length, 2);
+        assert.equal(createdComments.length, 2);
     });
 
     it("can delete a comment", async () => {
