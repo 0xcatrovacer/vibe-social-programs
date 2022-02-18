@@ -99,10 +99,14 @@ pub mod solvibe_social {
     pub fn follow_one(ctx: Context<FollowOne>, followed: Pubkey, follow_account_bump: u8) -> ProgramResult {
         let follow = &mut ctx.accounts.follow;
         let follower = &mut ctx.accounts.follower;
+        let user = &mut ctx.accounts.user;
 
         follow.followed = followed;
         follow.follower = *follower.key;
         follow.bump = follow_account_bump;
+        
+        user.followers += 1;
+        
         Ok(())
     }
 }
@@ -186,6 +190,8 @@ pub struct FollowOne<'info> {
     #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, payer = follower, space = Follow::LEN)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
+    pub user: Account<'info, User>,
+    #[account(mut)]
     pub follower: Signer<'info>,
     pub system_program: Program<'info, System>
 }
@@ -194,6 +200,7 @@ pub struct FollowOne<'info> {
 pub struct User {
     pub user_key: Pubkey,
     pub bump: u8,
+    pub followers: u32,
     pub name: String,
     pub username: String,
 }
@@ -244,6 +251,7 @@ pub enum ErrorCode {
 //Size of an User
 const USER_DISCRIMINATOR_LENGTH: usize = 8;
 const USER_PUBLIC_KEY_LENGTH: usize = 32;
+const USER_FOLLOWERS_LENGTH: usize = 4;
 const MAX_USER_BUMP_SIZE: usize = 1;
 const USER_STRING_LENGTH_PREFIX: usize = 4;
 const MAX_NAME_LENGTH: usize = 20 * 4;
@@ -251,6 +259,7 @@ const MAX_NAME_LENGTH: usize = 20 * 4;
 impl User {
     const LEN: usize = USER_DISCRIMINATOR_LENGTH
         + USER_PUBLIC_KEY_LENGTH  //Author.
+        + USER_FOLLOWERS_LENGTH // Followers.
         + MAX_USER_BUMP_SIZE //Bump.
         + USER_STRING_LENGTH_PREFIX + MAX_NAME_LENGTH //Name.
         + USER_STRING_LENGTH_PREFIX + MAX_NAME_LENGTH; //Username.
