@@ -390,7 +390,7 @@ describe("solvibe-likes", () => {
             signers: [vibe],
         });
 
-        const [likeaccount, likeBump] =
+        const [likeAccount, likeBump] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
                     Buffer.from("vibe_like"),
@@ -403,7 +403,7 @@ describe("solvibe-likes", () => {
         try {
             await program.rpc.removeLike(likeBump, {
                 accounts: {
-                    like: likeaccount.toBase58(),
+                    like: likeAccount.toBase58(),
                     vibe: vibe.publicKey,
                     liker: author.publicKey,
                 },
