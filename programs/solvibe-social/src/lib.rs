@@ -106,7 +106,6 @@ pub mod solvibe_social {
         follow.bump = follow_account_bump;
         
         user.followers += 1;
-        
         Ok(())
     }
 }
