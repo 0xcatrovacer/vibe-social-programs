@@ -121,7 +121,7 @@ pub mod solvibe_social {
 #[derive(Accounts)]
 #[instruction(name: String, username: String, account_user_bump: u8)]
 pub struct CreateUser<'info> {
-    #[account(init, seeds = [b"vibe_user", username.as_bytes()], bump = account_user_bump, payer = author, space = User::LEN)]
+    #[account(init, seeds = [b"vibe_user", author.key().as_ref()], bump = account_user_bump, payer = author, space = User::LEN)]
     pub user_account: Account<'info, User>,
     #[account(mut)]
     pub author: Signer<'info>,
