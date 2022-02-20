@@ -192,7 +192,6 @@ describe("solvibe-follows", () => {
         const unfollowed = await program.account.follow.fetchNullable(
             followAccount
         );
-
         assert.ok(unfollowed === null);
     });
 });
