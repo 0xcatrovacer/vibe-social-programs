@@ -96,23 +96,23 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn follow_one(ctx: Context<FollowOne>, followed: Pubkey, follow_account_bump: u8) -> ProgramResult {
+    pub fn follow_one(ctx: Context<FollowOne>, follow_account_bump: u8) -> ProgramResult {
         let follow = &mut ctx.accounts.follow;
         let follower = &mut ctx.accounts.follower;
-        let user = &mut ctx.accounts.user;
+        let followed = &mut ctx.accounts.followed;
 
-        follow.followed = followed;
+        follow.followed = followed.key();
         follow.follower = *follower.key;
         follow.bump = follow_account_bump;
         
-        user.followers += 1;
+        followed.followers += 1;
         Ok(())
     }
 
     pub fn unfollow(ctx: Context<UnFollow>, _followed: Pubkey, _follow_account_bump: u8) -> ProgramResult {
-        let user = &mut ctx.accounts.user;
+        let followed = &mut ctx.accounts.followed;
 
-        user.followers -= 1;
+        followed.followers -= 1;
 
         Ok(())
     }
@@ -192,24 +192,24 @@ pub struct RemoveComment<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(followed: Pubkey, follow_account_bump: u8)]
+#[instruction(follow_account_bump: u8)]
 pub struct FollowOne<'info> {
     #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, payer = follower, space = Follow::LEN)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
-    pub user: Account<'info, User>,
+    pub followed: Account<'info, User>,
     #[account(mut)]
     pub follower: Signer<'info>,
     pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
-#[instruction(followed: Pubkey, follow_account_bump: u8)]
+#[instruction(follow_account_bump: u8)]
 pub struct UnFollow<'info> {
     #[account(mut, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, close = follower)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
-    pub user: Account<'info, User>,
+    pub followed: Account<'info, User>,
     #[account(mut)]
     pub follower: Signer<'info>,
 }
@@ -330,7 +330,7 @@ impl Comment {
 const FOLLOW_DISCRIMINATOR_LENGTH: usize = 8;
 const FOLLOWER_USER_PUBLIC_KEY_LENGTH: usize = 32;
 const FOLLOWED_USER_PUBLIC_KEY_LENGTH: usize = 32;
-const FOLLOW_BUMP: usize = 1;
+const FOLLOW_BUMP: usize = 2;
 
 impl Follow {
     const LEN: usize = FOLLOW_DISCRIMINATOR_LENGTH
