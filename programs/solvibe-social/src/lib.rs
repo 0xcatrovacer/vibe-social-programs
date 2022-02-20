@@ -106,10 +106,11 @@ pub mod solvibe_social {
         follow.bump = follow_account_bump;
         
         followed.followers += 1;
+        
         Ok(())
     }
 
-    pub fn unfollow(ctx: Context<UnFollow>, _followed: Pubkey, _follow_account_bump: u8) -> ProgramResult {
+    pub fn unfollow(ctx: Context<UnFollow>, _follow_account_bump: u8) -> ProgramResult {
         let followed = &mut ctx.accounts.followed;
 
         followed.followers -= 1;
