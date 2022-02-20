@@ -11,15 +11,13 @@ describe("solvibe-users", () => {
     it("can create user", async () => {
         const author = program.provider.wallet;
 
-        const username = "unique username";
-
         const [userAccount, userBump] =
             await anchor.web3.PublicKey.findProgramAddress(
-                [Buffer.from("vibe_user"), Buffer.from(username)],
+                [Buffer.from("vibe_user"), author.publicKey.toBuffer()],
                 program.programId
             );
 
-        await program.rpc.createUser("New Name", username, userBump, {
+        await program.rpc.createUser("New Name", "unique username", userBump, {
             accounts: {
                 userAccount: userAccount,
                 author: author.publicKey,
