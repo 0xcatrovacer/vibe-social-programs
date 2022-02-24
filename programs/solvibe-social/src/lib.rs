@@ -26,6 +26,19 @@ pub mod solvibe_social {
         Ok(())
     }
 
+    pub fn update_name(ctx: Context<UpdateName>, newname: String, _account_user_bump: u8) -> ProgramResult {
+        
+        let user = &mut ctx.accounts.user_account;
+        
+        if newname.chars().count() > 20 {
+            return Err(ErrorCode::NameTooLong.into())
+        }
+
+        user.name = newname;
+
+        Ok(())
+    }
+
     pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
 
         let vibe = &mut ctx.accounts.vibe;
@@ -127,6 +140,15 @@ pub struct CreateUser<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(newname: String, account_user_bump: u8)]
+pub struct UpdateName<'info> {
+    #[account(mut, seeds = [b"vibe_user", author.key().as_ref()], bump = account_user_bump)]
+    pub user_account: Account<'info, User>,
+    #[account(mut)]
+    pub author: Signer<'info>,
 }
 
 #[derive(Accounts)]
