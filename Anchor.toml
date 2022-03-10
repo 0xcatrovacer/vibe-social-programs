@@ -1,4 +1,10 @@
+[programs.localnet]
+solvibe_social = "3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz"
+
 [programs.devnet]
+solvibe_social = "3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz"
+
+[programs.testnet]
 solvibe_social = "3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz"
 
 [registry]
