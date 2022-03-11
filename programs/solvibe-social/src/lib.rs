@@ -6,7 +6,7 @@ declare_id!("3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz");
 pub mod solvibe_social {
     use super::*;
 
-    pub fn create_user(ctx: Context<CreateUser>, name: String, username: String, account_user_bump: u8) -> ProgramResult {
+    pub fn create_user(ctx: Context<CreateUser>, name: String, username: String) ->  Result<()>  {
         let user = &mut ctx.accounts.user_account;
         let author = &mut ctx.accounts.author;
 
@@ -19,14 +19,14 @@ pub mod solvibe_social {
         }
 
         user.user_key =  *author.key;
-        user.bump = account_user_bump;
+        user.bump = *ctx.bumps.get("user").unwrap();
         user.name = name;
         user.username = username;
 
         Ok(())
     }
 
-    pub fn update_name(ctx: Context<UpdateName>, newname: String, _account_user_bump: u8) -> ProgramResult {
+    pub fn update_name(ctx: Context<UpdateName>, newname: String, _account_user_bump: u8) ->  Result<()>  {
         
         let user = &mut ctx.accounts.user_account;
         
@@ -39,7 +39,7 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) -> ProgramResult {
+    pub fn create_vibe(ctx: Context<CreateVibe>, topic: String, content: String) ->  Result<()>  {
 
         let vibe = &mut ctx.accounts.vibe;
         let author = &mut ctx.accounts.author;
@@ -63,28 +63,28 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn update_likes(ctx: Context<UpdateLikes>, like_account_bump: u8) -> ProgramResult {
+    pub fn update_likes(ctx: Context<UpdateLikes>) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
         let like = &mut ctx.accounts.like;
         
-        like.bump = like_account_bump;
+        like.bump = *ctx.bumps.get("like").unwrap();
         vibe.likes += 1;
         
         Ok(())
     }
 
-    pub fn remove_like(ctx: Context<RemoveLike>, _like_account_bump: u8) -> ProgramResult {
+    pub fn remove_like(ctx: Context<RemoveLike>, _like_account_bump: u8) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
     
         vibe.likes -= 1;
         Ok(())
     }
 
-    pub fn delete_vibe(_ctx: Context<DeleteVibe>) -> ProgramResult {
+    pub fn delete_vibe(_ctx: Context<DeleteVibe>) ->  Result<()>  {
         Ok(())
     }
 
-    pub fn add_comment(ctx: Context<AddComment>, comment: String, comment_account_bump: u8) -> ProgramResult {
+    pub fn add_comment(ctx: Context<AddComment>, comment: String) ->  Result<()>  {
         let comment_account = &mut ctx.accounts.comment;
         let commentor = &mut ctx.accounts.commentor;
         let vibe = &mut ctx.accounts.vibe;
@@ -96,34 +96,35 @@ pub mod solvibe_social {
         comment_account.vibe = vibe.key();
         comment_account.commentor = *commentor.key;
         comment_account.comment = comment;
-        comment_account.bump = comment_account_bump;
+        
+        comment_account.bump = *ctx.bumps.get("comment_account").unwrap();
 
         vibe.comments += 1;
 
         Ok(())
     }
 
-    pub fn remove_comment(ctx: Context<RemoveComment>, _comment_account_bump: u8) -> ProgramResult {
+    pub fn remove_comment(ctx: Context<RemoveComment>, _comment_account_bump: u8) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
         vibe.comments += 1;
         Ok(())
     }
 
-    pub fn follow_one(ctx: Context<FollowOne>, follow_account_bump: u8) -> ProgramResult {
+    pub fn follow_one(ctx: Context<FollowOne>) ->  Result<()>  {
         let follow = &mut ctx.accounts.follow;
         let follower = &mut ctx.accounts.follower;
         let followed = &mut ctx.accounts.followed;
 
         follow.followed = followed.key();
         follow.follower = *follower.key;
-        follow.bump = follow_account_bump;
+        follow.bump = *ctx.bumps.get("follow").unwrap();
         
         followed.followers += 1;
         
         Ok(())
     }
 
-    pub fn unfollow(ctx: Context<UnFollow>, _follow_account_bump: u8) -> ProgramResult {
+    pub fn unfollow(ctx: Context<UnFollow>, _follow_account_bump: u8) ->  Result<()>  {
         let followed = &mut ctx.accounts.followed;
 
         followed.followers -= 1;
@@ -133,9 +134,8 @@ pub mod solvibe_social {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, username: String, account_user_bump: u8)]
 pub struct CreateUser<'info> {
-    #[account(init, seeds = [b"vibe_user", author.key().as_ref()], bump = account_user_bump, payer = author, space = User::LEN)]
+    #[account(init, seeds = [b"vibe_user", author.key().as_ref()], bump, payer = author, space = User::LEN)]
     pub user_account: Account<'info, User>,
     #[account(mut)]
     pub author: Signer<'info>,
@@ -161,9 +161,8 @@ pub struct CreateVibe<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(like_account_bump: u8)]
 pub struct UpdateLikes<'info> {
-    #[account(init, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump = like_account_bump, payer = liker, space = Like::LEN )]
+    #[account(init, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump, payer = liker, space = Like::LEN )]
     pub like: Account<'info, Like>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -192,9 +191,8 @@ pub struct DeleteVibe<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(comment: String, comment_account_bump: u8)]
 pub struct AddComment<'info> {
-    #[account(init, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment_account_bump, payer = commentor, space = Comment::LEN)]
+    #[account(init, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump, payer = commentor, space = Comment::LEN)]
     pub comment: Account<'info, Comment>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -215,9 +213,8 @@ pub struct RemoveComment<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(follow_account_bump: u8)]
 pub struct FollowOne<'info> {
-    #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, payer = follower, space = Follow::LEN)]
+    #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump, payer = follower, space = Follow::LEN)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
     pub followed: Account<'info, User>,
@@ -276,7 +273,7 @@ pub struct Follow {
     pub bump: u8,
 }
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("The provided name should be 20 characters long maximum")]
     NameTooLong,
