@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { SolvibeSocial } from "../target/types/solvibe_social";
 import * as assert from "assert";
@@ -11,28 +12,26 @@ describe("solvibe-users", () => {
     it("can create user", async () => {
         const author = program.provider.wallet;
 
-        const [userAccount, userBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [Buffer.from("vibe_user"), author.publicKey.toBuffer()],
-                program.programId
-            );
+        const [userAccountPDA, _] = await PublicKey.findProgramAddress(
+            [Buffer.from("vibe_user"), author.publicKey.toBuffer()],
+            program.programId
+        );
 
-        await program.rpc.createUser("New Name", "unique username", userBump, {
+        await program.rpc.createUser("New Name", "unique", {
             accounts: {
-                userAccount: userAccount,
+                userAccount: userAccountPDA,
                 author: author.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
         });
 
-        const createdUser = await program.account.user.fetch(userAccount);
+        const createdUser = await program.account.user.fetch(userAccountPDA);
 
         assert.equal(
             createdUser.userKey.toBase58(),
             author.publicKey.toBase58()
         );
         assert.equal(createdUser.name, "New Name");
-        assert.equal(createdUser.username, "unique username");
-        assert.equal(createdUser.bump, userBump);
+        assert.equal(createdUser.username, "unique");
     });
 });
