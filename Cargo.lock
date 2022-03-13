@@ -1108,7 +1108,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "solvibe-social"
+name = "solvibe_social"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",

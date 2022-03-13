@@ -11,7 +11,7 @@ solvibe_social = "3NcczXqNpzUsp6c2pGqLNJMnUwScvZBXduj8f3sg6Qdz"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/home/swarnab/.config/solana/id.json"
 
 [scripts]
