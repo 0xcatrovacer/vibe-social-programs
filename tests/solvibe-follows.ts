@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { SolvibeSocial } from "../target/types/solvibe_social";
 import * as assert from "assert";
@@ -20,32 +21,34 @@ describe("solvibe-follows", () => {
 
         await program.provider.connection.confirmTransaction(signature);
 
-        const [userAccount, userBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [Buffer.from("vibe_user"), followed.publicKey.toBuffer()],
-                program.programId
-            );
+        const [userAccount, _userBump] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_user"),
+                followed.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.createUser("Ethan", "eth1234", userBump, {
+        await program.rpc.createUser("Ethan", "eth1234", {
             accounts: {
                 userAccount: userAccount,
                 author: followed.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
             signers: [followed],
         });
 
-        const [followAccount, followBump] =
+        const [followAccount, _] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
-                    Buffer.from("follow_one"),
+                    anchor.utils.bytes.utf8.encode("follow_one"),
                     userAccount.toBuffer(),
                     author.publicKey.toBuffer(),
                 ],
                 program.programId
             );
 
-        await program.rpc.followOne(followBump, {
+        await program.rpc.followOne({
             accounts: {
                 follow: followAccount,
                 followed: userAccount,
@@ -58,7 +61,6 @@ describe("solvibe-follows", () => {
 
         assert.equal(follow.followed.toBase58(), userAccount.toBase58());
         assert.equal(follow.follower.toBase58(), author.publicKey.toBase58());
-        assert.equal(follow.bump, followBump);
     });
 
     it("cannot follow already followed user", async () => {
@@ -73,13 +75,15 @@ describe("solvibe-follows", () => {
 
         await program.provider.connection.confirmTransaction(signature);
 
-        const [userAccount, userBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [Buffer.from("vibe_user"), followed.publicKey.toBuffer()],
-                program.programId
-            );
+        const [userAccount, _] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_user"),
+                followed.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.createUser("Catrovacer", "catrovacer.sol", userBump, {
+        await program.rpc.createUser("Catrovacer", "catrovacer.sol", {
             accounts: {
                 userAccount: userAccount,
                 author: followed.publicKey,
@@ -88,17 +92,16 @@ describe("solvibe-follows", () => {
             signers: [followed],
         });
 
-        const [followAccount, followBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("follow_one"),
-                    userAccount.toBuffer(),
-                    author.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [followAccount, _followBump] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("follow_one"),
+                userAccount.toBuffer(),
+                author.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.followOne(followBump, {
+        await program.rpc.followOne({
             accounts: {
                 follow: followAccount,
                 followed: userAccount,
@@ -111,10 +114,9 @@ describe("solvibe-follows", () => {
 
         assert.equal(follow.followed.toBase58(), userAccount.toBase58());
         assert.equal(follow.follower.toBase58(), author.publicKey.toBase58());
-        assert.equal(follow.bump, followBump);
 
         try {
-            await program.rpc.followOne(followBump, {
+            await program.rpc.followOne({
                 accounts: {
                     follow: followAccount,
                     followed: userAccount,
@@ -141,13 +143,15 @@ describe("solvibe-follows", () => {
 
         await program.provider.connection.confirmTransaction(signature);
 
-        const [userAccount, userBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [Buffer.from("vibe_user"), followed.publicKey.toBuffer()],
-                program.programId
-            );
+        const [userAccount, _] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_user"),
+                followed.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.createUser("Batman", "batcave", userBump, {
+        await program.rpc.createUser("Batman", "batcave", {
             accounts: {
                 userAccount: userAccount,
                 author: followed.publicKey,
@@ -156,22 +160,22 @@ describe("solvibe-follows", () => {
             signers: [followed],
         });
 
-        const [followAccount, followBump] =
+        const [followAccount, _followBump] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
-                    Buffer.from("follow_one"),
+                    anchor.utils.bytes.utf8.encode("follow_one"),
                     userAccount.toBuffer(),
                     author.publicKey.toBuffer(),
                 ],
                 program.programId
             );
 
-        await program.rpc.followOne(followBump, {
+        await program.rpc.followOne({
             accounts: {
                 follow: followAccount,
                 followed: userAccount,
                 follower: author.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
         });
 
@@ -179,9 +183,8 @@ describe("solvibe-follows", () => {
 
         assert.equal(follow.followed.toBase58(), userAccount.toBase58());
         assert.equal(follow.follower.toBase58(), author.publicKey.toBase58());
-        assert.equal(follow.bump, followBump);
 
-        await program.rpc.unfollow(followBump, {
+        await program.rpc.unfollow({
             accounts: {
                 follow: followAccount,
                 followed: userAccount,
