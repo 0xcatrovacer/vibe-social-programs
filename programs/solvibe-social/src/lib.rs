@@ -19,14 +19,14 @@ pub mod solvibe_social {
         }
 
         user.user_key =  *author.key;
-        user.bump = *ctx.bumps.get("user").unwrap();
+        user.bump = *ctx.bumps.get("user_account").unwrap();
         user.name = name;
         user.username = username;
 
         Ok(())
     }
 
-    pub fn update_name(ctx: Context<UpdateName>, newname: String, _account_user_bump: u8) ->  Result<()>  {
+    pub fn update_name(ctx: Context<UpdateName>, newname: String) ->  Result<()>  {
         
         let user = &mut ctx.accounts.user_account;
         
@@ -73,7 +73,7 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn remove_like(ctx: Context<RemoveLike>, _like_account_bump: u8) ->  Result<()>  {
+    pub fn remove_like(ctx: Context<RemoveLike>) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
     
         vibe.likes -= 1;
@@ -97,16 +97,16 @@ pub mod solvibe_social {
         comment_account.commentor = *commentor.key;
         comment_account.comment = comment;
         
-        comment_account.bump = *ctx.bumps.get("comment_account").unwrap();
+        comment_account.bump = *ctx.bumps.get("comment").unwrap();
 
         vibe.comments += 1;
 
         Ok(())
     }
 
-    pub fn remove_comment(ctx: Context<RemoveComment>, _comment_account_bump: u8) ->  Result<()>  {
+    pub fn remove_comment(ctx: Context<RemoveComment>) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
-        vibe.comments += 1;
+        vibe.comments -= 1;
         Ok(())
     }
 
@@ -124,7 +124,7 @@ pub mod solvibe_social {
         Ok(())
     }
 
-    pub fn unfollow(ctx: Context<UnFollow>, _follow_account_bump: u8) ->  Result<()>  {
+    pub fn unfollow(ctx: Context<UnFollow>) ->  Result<()>  {
         let followed = &mut ctx.accounts.followed;
 
         followed.followers -= 1;
@@ -143,9 +143,8 @@ pub struct CreateUser<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(newname: String, account_user_bump: u8)]
 pub struct UpdateName<'info> {
-    #[account(mut, seeds = [b"vibe_user", author.key().as_ref()], bump = account_user_bump)]
+    #[account(mut, seeds = [b"vibe_user", author.key().as_ref()], bump = user_account.bump)]
     pub user_account: Account<'info, User>,
     #[account(mut)]
     pub author: Signer<'info>,
@@ -172,9 +171,8 @@ pub struct UpdateLikes<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(like_account_bump: u8)]
 pub struct RemoveLike<'info> {
-    #[account(mut, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump = like_account_bump, close = liker)]
+    #[account(mut, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump = like.bump, close = liker)]
     pub like: Account<'info, Like>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -202,9 +200,8 @@ pub struct AddComment<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(comment_account_bump: u8)]
 pub struct RemoveComment<'info> {
-    #[account(mut, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment_account_bump, close = commentor)]
+    #[account(mut, seeds=[b"vibe_comment", commentor.key().as_ref(), vibe.key().as_ref()], bump = comment.bump, close = commentor)]
     pub comment: Account<'info, Comment>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -224,9 +221,8 @@ pub struct FollowOne<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(follow_account_bump: u8)]
 pub struct UnFollow<'info> {
-    #[account(mut, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow_account_bump, close = follower)]
+    #[account(mut, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow.bump, close = follower)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
     pub followed: Account<'info, User>,
