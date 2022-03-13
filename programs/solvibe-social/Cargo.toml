@@ -1,5 +1,5 @@
 [package]
-name = "solvibe-social"
+name = "solvibe_social"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"

@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { SolvibeSocial } from "../target/types/solvibe_social";
 import * as assert from "assert";
@@ -25,17 +26,16 @@ describe("solvibe-likes", () => {
 
         assert.equal(createdVibe.likes, 0);
 
-        const [likeAccount, likeBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_like"),
-                    author.publicKey.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [likeAccount, _] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from("vibe_like"),
+                author.publicKey.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -75,17 +75,16 @@ describe("solvibe-likes", () => {
 
         const liker = program.provider.wallet.publicKey;
 
-        const [likeAccount, likeBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_like"),
-                    liker.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [likeAccount, _] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from("vibe_like"),
+                liker.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -121,17 +120,16 @@ describe("solvibe-likes", () => {
 
         const liker = program.provider.wallet.publicKey;
 
-        const [likeAccount, likeBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_like"),
-                    liker.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [likeAccount, _] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from("vibe_like"),
+                liker.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -141,7 +139,7 @@ describe("solvibe-likes", () => {
         });
 
         try {
-            await program.rpc.updateLikes(likeBump, {
+            await program.rpc.updateLikes({
                 accounts: {
                     like: likeAccount.toBase58(),
                     vibe: vibe.publicKey,
@@ -181,17 +179,16 @@ describe("solvibe-likes", () => {
 
         await program.provider.connection.confirmTransaction(signature);
 
-        const [likeAccount, likeBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_like"),
-                    newLiker.publicKey.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [likeAccount, _] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from("vibe_like"),
+                newLiker.publicKey.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount,
                 vibe: vibe.publicKey,
@@ -221,17 +218,16 @@ describe("solvibe-likes", () => {
 
         assert.equal(createdVibe.likes, 0);
 
-        const [likeAccount, likeBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_like"),
-                    author.publicKey.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [likeAccount, _likeBump1] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_like"),
+                author.publicKey.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -253,17 +249,17 @@ describe("solvibe-likes", () => {
 
         await program.provider.connection.confirmTransaction(signature);
 
-        const [likeAccount1, likeBump1] =
+        const [likeAccount1, _] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
-                    Buffer.from("vibe_like"),
+                    anchor.utils.bytes.utf8.encode("vibe_like"),
                     otherliker1.publicKey.toBuffer(),
                     vibe.publicKey.toBuffer(),
                 ],
                 program.programId
             );
 
-        await program.rpc.updateLikes(likeBump1, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount1.toBase58(),
                 vibe: vibe.publicKey,
@@ -296,7 +292,7 @@ describe("solvibe-likes", () => {
                 program.programId
             );
 
-        await program.rpc.updateLikes(likeBump2, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount2.toBase58(),
                 vibe: vibe.publicKey,
@@ -338,7 +334,7 @@ describe("solvibe-likes", () => {
                 program.programId
             );
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -351,7 +347,7 @@ describe("solvibe-likes", () => {
 
         assert.equal(likedVibe.likes, 1);
 
-        await program.rpc.removeLike(likeBump, {
+        await program.rpc.removeLike({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -363,7 +359,7 @@ describe("solvibe-likes", () => {
 
         assert.equal(unLikedVibe.likes, 0);
 
-        await program.rpc.updateLikes(likeBump, {
+        await program.rpc.updateLikes({
             accounts: {
                 like: likeAccount.toBase58(),
                 vibe: vibe.publicKey,
@@ -401,7 +397,7 @@ describe("solvibe-likes", () => {
             );
 
         try {
-            await program.rpc.removeLike(likeBump, {
+            await program.rpc.removeLike({
                 accounts: {
                     like: likeAccount.toBase58(),
                     vibe: vibe.publicKey,

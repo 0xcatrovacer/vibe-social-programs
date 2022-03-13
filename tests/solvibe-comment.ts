@@ -1,4 +1,5 @@
 import * as anchor from "@project-serum/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { SolvibeSocial } from "../target/types/solvibe_social";
 import * as assert from "assert";
@@ -22,28 +23,27 @@ describe("solvibe-comments", () => {
             signers: [vibe],
         });
 
-        const [commentAccount, commentBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_comment"),
-                    author.publicKey.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [commentAccountPDA, _] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_comment"),
+                author.publicKey.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.addComment("New Comment", commentBump, {
+        await program.rpc.addComment("New Comment", {
             accounts: {
-                comment: commentAccount,
+                comment: commentAccountPDA,
                 vibe: vibe.publicKey,
                 commentor: author.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
         });
 
         const createdVibe = await program.account.vibe.fetch(vibe.publicKey);
         const createdComment = await program.account.comment.fetch(
-            commentAccount
+            commentAccountPDA
         );
 
         assert.equal(
@@ -67,17 +67,17 @@ describe("solvibe-comments", () => {
             signers: [vibe],
         });
 
-        const [commentAccount, commentBump] =
+        const [commentAccount, _] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
-                    Buffer.from("vibe_comment"),
+                    anchor.utils.bytes.utf8.encode("vibe_comment"),
                     author.publicKey.toBuffer(),
                     vibe.publicKey.toBuffer(),
                 ],
                 program.programId
             );
 
-        await program.rpc.addComment("New Comment", commentBump, {
+        await program.rpc.addComment("New Comment", {
             accounts: {
                 comment: commentAccount,
                 vibe: vibe.publicKey,
@@ -117,19 +117,15 @@ describe("solvibe-comments", () => {
                 program.programId
             );
 
-        await program.rpc.addComment(
-            "New Comment for new commentor",
-            newCommentBump,
-            {
-                accounts: {
-                    comment: newCommentAccount,
-                    vibe: vibe.publicKey,
-                    commentor: newCommentor.publicKey,
-                    systemProgram: anchor.web3.SystemProgram.programId,
-                },
-                signers: [newCommentor],
-            }
-        );
+        await program.rpc.addComment("New Comment for new commentor", {
+            accounts: {
+                comment: newCommentAccount,
+                vibe: vibe.publicKey,
+                commentor: newCommentor.publicKey,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            },
+            signers: [newCommentor],
+        });
 
         const createdComments = await program.account.comment.all([
             {
@@ -151,27 +147,26 @@ describe("solvibe-comments", () => {
             accounts: {
                 vibe: vibe.publicKey,
                 author: author.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
             signers: [vibe],
         });
 
-        const [commentAccount, commentBump] =
-            await anchor.web3.PublicKey.findProgramAddress(
-                [
-                    Buffer.from("vibe_comment"),
-                    author.publicKey.toBuffer(),
-                    vibe.publicKey.toBuffer(),
-                ],
-                program.programId
-            );
+        const [commentAccount, _] = await PublicKey.findProgramAddress(
+            [
+                anchor.utils.bytes.utf8.encode("vibe_comment"),
+                author.publicKey.toBuffer(),
+                vibe.publicKey.toBuffer(),
+            ],
+            program.programId
+        );
 
-        await program.rpc.addComment("New Comment", commentBump, {
+        await program.rpc.addComment("New Comment", {
             accounts: {
                 comment: commentAccount,
                 vibe: vibe.publicKey,
                 commentor: author.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
+                systemProgram: SystemProgram.programId,
             },
         });
 
@@ -185,7 +180,7 @@ describe("solvibe-comments", () => {
         );
         assert.ok(createdComment !== null);
 
-        await program.rpc.removeComment(commentBump, {
+        await program.rpc.removeComment({
             accounts: {
                 comment: commentAccount,
                 vibe: vibe.publicKey,
@@ -193,11 +188,11 @@ describe("solvibe-comments", () => {
             },
         });
 
-        const deleltedComment = await program.account.comment.fetchNullable(
+        const deletedComment = await program.account.comment.fetchNullable(
             commentAccount
         );
 
-        assert.ok(deleltedComment === null);
+        assert.ok(deletedComment === null);
     });
 
     it("cannot delete uncreated comment", async () => {
@@ -213,10 +208,10 @@ describe("solvibe-comments", () => {
             signers: [vibe],
         });
 
-        const [commentAccount, commentBump] =
+        const [commentAccount, _] =
             await anchor.web3.PublicKey.findProgramAddress(
                 [
-                    Buffer.from("vibe_comment"),
+                    anchor.utils.bytes.utf8.encode("vibe_comment"),
                     author.publicKey.toBuffer(),
                     vibe.publicKey.toBuffer(),
                 ],
@@ -224,7 +219,7 @@ describe("solvibe-comments", () => {
             );
 
         try {
-            await program.rpc.removeComment(commentBump, {
+            await program.rpc.removeComment({
                 accounts: {
                     comment: commentAccount,
                     vibe: vibe.publicKey,
