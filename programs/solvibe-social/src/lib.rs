@@ -119,15 +119,15 @@ pub mod solvibe_social {
         follow.follower = *follower.key;
         follow.bump = *ctx.bumps.get("follow").unwrap();
         
-        followed.followers += 1;
+        // followed.followers += 1;
         
         Ok(())
     }
 
-    pub fn unfollow(ctx: Context<UnFollow>) ->  Result<()>  {
-        let followed = &mut ctx.accounts.followed;
+    pub fn unfollow(_ctx: Context<UnFollow>) ->  Result<()>  {
+        // let followed = &mut ctx.accounts.followed;
 
-        followed.followers -= 1;
+        // followed.followers -= 1;
 
         Ok(())
     }
@@ -214,7 +214,7 @@ pub struct FollowOne<'info> {
     #[account(init, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump, payer = follower, space = Follow::LEN)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
-    pub followed: Account<'info, User>,
+    pub followed: AccountInfo<'info>,
     #[account(mut)]
     pub follower: Signer<'info>,
     pub system_program: Program<'info, System>
@@ -225,7 +225,7 @@ pub struct UnFollow<'info> {
     #[account(mut, seeds=[b"follow_one", followed.key().as_ref(), follower.key().as_ref()], bump = follow.bump, close = follower)]
     pub follow: Account<'info, Follow>,
     #[account(mut)]
-    pub followed: Account<'info, User>,
+    pub followed: AccountInfo<'info>,
     #[account(mut)]
     pub follower: Signer<'info>,
 }
