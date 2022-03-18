@@ -66,9 +66,13 @@ pub mod solvibe_social {
     pub fn update_likes(ctx: Context<UpdateLikes>) ->  Result<()>  {
         let vibe = &mut ctx.accounts.vibe;
         let like = &mut ctx.accounts.like;
+        let author = &mut ctx.accounts.liker;
         
         like.bump = *ctx.bumps.get("like").unwrap();
         vibe.likes += 1;
+
+        like.vibe = vibe.key();
+        like.liker = *author.key;
         
         Ok(())
     }
@@ -161,7 +165,7 @@ pub struct CreateVibe<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateLikes<'info> {
-    #[account(init, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump, payer = liker, space = Like::LEN )]
+    #[account(init, payer = liker, space = Like::LEN )]
     pub like: Account<'info, Like>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -172,7 +176,7 @@ pub struct UpdateLikes<'info> {
 
 #[derive(Accounts)]
 pub struct RemoveLike<'info> {
-    #[account(mut, seeds = [b"vibe_like", liker.key().as_ref(), vibe.key().as_ref()], bump = like.bump, close = liker)]
+    #[account(mut, close = liker)]
     pub like: Account<'info, Like>,
     #[account(mut)]
     pub vibe: Account<'info, Vibe>,
@@ -251,6 +255,8 @@ pub struct Vibe {
 
 #[account]
 pub struct Like {
+    pub vibe: Pubkey,
+    pub liker: Pubkey,
     pub bump: u8,
 }
 
@@ -325,6 +331,8 @@ const LIKE_DISCRIMINATOR_LENGTH: usize = 8;
 const MAX_BUMP_SIZE: usize = 1;
 impl Like {
     const LEN: usize = LIKE_DISCRIMINATOR_LENGTH
+        + VIBE_PUBLIC_KEY_LENGTH 
+        + VIBE_PUBLIC_KEY_LENGTH 
         + MAX_BUMP_SIZE; //Bump.
 }
 
